@@ -109,5 +109,3 @@ class Author(models.Model):
         # String for representing the Model object.
         return f'{self.first_name} {self.last_name}'
 
-
-

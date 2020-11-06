@@ -1,7 +1,13 @@
 from django.shortcuts import render, get_object_or_404
-from catalog.models import Book, Author, Language, Bookinstance, Genre
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.contrib.auth.decorators import permission_required
+from catalog.models import Book, Author, Language, Bookinstance, Genre
+from catalog.forms import RenewBookForm
+from django.contrib.auth.mixins import PermissionRequiredMixin
+import datetime
 
 # Create your views here.
 def index(request):
@@ -84,3 +90,80 @@ class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         return Bookinstance.objects.filter(borrower=self.request.user).filter(status__exact='o').order_by('due_back')
+
+
+class LoanedBooksAllListView(PermissionRequiredMixin, generic.ListView):
+    """Generic class-based view listing all books on loan. Only visible to users with can_mark_returned permission."""
+    model = Bookinstance
+    permission_required = 'catalog.can_mark_returned'
+    template_name = 'catalog/bookinstance_list_borrowed_all.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Bookinstance.objects.filter(status__exact='o').order_by('due_back')
+
+
+@permission_required('catalog.can_mark_returned')
+def renew_book_librarian(request, pk):
+    # 도서관 사서에 의해 특정 BookInstance를 갱신하는 view 함수
+    book_instance = get_object_or_404(Bookinstance, pk=pk)
+
+    # POST 요청이면 form 데이터를 처리한다.
+    if request.method == 'POST':
+
+        # Form Instance를 생성하고 요청에 의한 데이터로 채운다 (binding):
+        book_renewal_form = RenewBookForm(request.POST)
+
+        # Form이 유효한지 체크한다:
+        if book_renewal_form.is_valid():
+            # book_renewal_form.cleaned_data 데이터를 요청 받는대로 처리한다(여기선 그냥 모델 due_back 필드에 써넣는다.)
+            book_instance.due_back = book_renewal_form.cleaned_data['renewal_date']
+            book_instance.save()
+
+            # 새로운 URL로 보낸다:
+            return HttpResponseRedirect(reverse('all-borrowed'))
+    else:
+        # GET 요청(혹은 다른 메소드)이면 기본 Form을 생성한다.
+        proposed_renewal_date = datetime.date.today() + datetime.timedelta(weeks=3)
+        book_renewal_form = RenewBookForm(initial={'renewal_date': proposed_renewal_date})
+
+    context = {
+        'form': book_renewal_form,
+        'book_instance': book_instance,
+    }
+
+    return render(request, 'catalog/book_renew_librarian.html', context)
+
+
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from .models import Author, Book
+
+class AuthorCreate(CreateView):
+    model = Author
+    fields = '__all__'
+    initial={'date_of_death':'05/01/2018',}
+
+
+class BookCreate(CreateView):
+    model = Book
+    fields = ['title', 'author', 'summary', 'isbn', 'genre']
+
+
+class AuthorUpdate(UpdateView):
+    model = Author
+    fields = ['first_name', 'last_name', 'date_of_birth', 'date_of_death']
+
+
+class BookUpdate(UpdateView):
+    model = Book
+    fields = ['title', 'author', 'summary', 'isbn', 'genre']
+
+
+class AuthorDelete(DeleteView):
+    model = Author
+    success_url = reverse_lazy('authors')
+
+class BookDelete(DeleteView):
+    model = Book
+    success_url = reverse_lazy('books')

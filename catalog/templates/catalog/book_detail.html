@@ -22,4 +22,7 @@
       <p class="text-muted"><strong>Id:</strong> {{copy.id}}</p>
     {% endfor %}
   </div>
+  <hr />
+  <dt><a href="{% url 'book_update' book.id %}">Book Update</a></dt>
+  <dt><a href="{% url 'book_delete' book.id %}">Book Delete</a></dt>
 {% endblock %}

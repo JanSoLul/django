@@ -10,5 +10,8 @@
         <dd>{{ book.summary }}</dd>
     {% endfor %}
     </div>
+    <hr />
+    <dt><a href="{% url 'author_update' author.id %}">Author Update</a></dt>
+    <dt><a href="{% url 'author_delete' author.id %}">Author Delete</a></dt>
 
 {% endblock %}
