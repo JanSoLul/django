@@ -22,13 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'fu6c&z%=^e)uhxz2u=1!2^a99iqxzuz#n4q%6l51mb@km_#v+u'
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'cg#p$g+j9tax!#a3cup@1$8obt2_+&k3q+pmu)5%asj6yjpkag')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'fu6c&z%=^e)uhxz2u=1!2^a99iqxzuz#n4q%6l51mb@km_#v+u')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 DEBUG = bool( os.environ.get('DJANGO_DEBUG', True) )
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'locallibrary-24792.herokuapp.com']
 
 # Redirect to home URL after login (Default redirects to accounts/profile)
 LOGIN_REDIRECT_URL = '/'
